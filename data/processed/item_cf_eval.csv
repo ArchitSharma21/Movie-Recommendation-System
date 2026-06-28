@@ -1,0 +1,2 @@
+k,evaluated_users,hits,recall_at_k,precision_at_k,mrr_at_k,coverage,unique_recommended_items,item_universe
+10,608,68,0.111842,0.011184,0.039203,0.07685,484,6298

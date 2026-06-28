@@ -1,35 +1,201 @@
-# Movie-Recommendation-System-With-Deployment-Using-Heroku
-A movie recommendation system deployed using Heroku
+---
+title: Movie Recommendation System
+emoji: 🎬
+colorFrom: red
+colorTo: indigo
+sdk: docker
+pinned: false
+---
 
-Content Based Recommender System recommends movies similar to the movie user likes and analyses the sentiments on the reviews given by the user for that movie.
+# Movie Recommendation System
 
-The details of the movies(title, genre, runtime, rating, poster, etc) are fetched using an API by TMDB, https://www.themoviedb.org/documentation/api, and using the IMDB id of the movie in the API, I did web scraping to get the reviews given by the user in the IMDB site using beautifulsoup4 and performed sentiment analysis on those reviews.
+A modernized movie recommendation project built for a production-style AI portfolio: backend APIs, content-based retrieval, TMDb metadata enrichment, explainable recommendation signals, and Hugging Face Spaces deployment.
 
-## How to get the API key?
-Create an account in https://www.themoviedb.org/, click on the API link from the left hand sidebar in your account settings and fill all the details to apply for API key. If you are asked for the website URL, just give "NA" if you don't have one. You will see the API key in your API sidebar once your request is approved.
+This repository is being upgraded from an older Flask demo into a lean v2 architecture that can grow into a full hybrid recommender system.
 
-## How to run the project?
-1. Clone this repository to your local machine.
-2. Install all the libraries mentioned in the requirements.txt file
-3. Get your API key from https://www.themoviedb.org/. (Refer the above section on how to get the API key)
-4. Replace YOUR_API_KEY in both the places (line no. 23 and 43) of static/recommend.js file.
-5. Open your terminal/command prompt from your project directory and run the file main.py by executing the command python main.py.
-6. Go to your browser and type http://127.0.0.1:5000/ in the address bar.
+This product uses the TMDb API but is not endorsed or certified by TMDb.
 
-## Similarity Score :
-How does it decide which item is most similar to the item user likes? Here we use the similarity scores.
+## Current V2 Capabilities
 
-It is a numerical value ranges between zero to one which helps to determine how much two items are similar to each other on a scale of zero to one. This similarity score is obtained measuring the similarity between the text details of both of the items. So, similarity score is the measure of similarity between given text details of two items. This can be done by cosine-similarity.
+- FastAPI application served with Uvicorn.
+- Hugging Face Spaces-compatible Docker deployment.
+- Server-side TMDb integration using `TMDB_API_KEY` from environment secrets.
+- Local content-based recommendation baseline using the existing movie catalog.
+- Lightweight TF-IDF content retrieval with stopword filtering.
+- Compact semantic-vector retrieval from precomputed catalog embeddings.
+- Recommendation API with explanations and scoring signals.
+- Existing UI flow preserved: search a movie, view details, cast, and recommendations.
+- TMDb review fetch with lightweight sentiment labels.
+- Self-recommendations filtered from recommendation results.
+- Legacy bachelor-era datasets are preserved under `data/legacy/`.
 
-## How Cosine Similarity works?
-Cosine similarity is a metric used to measure how similar the documents are irrespective of their size. Mathematically, it measures the cosine of the angle between two vectors projected in a multi-dimensional space. The cosine similarity is advantageous because even if the two similar documents are far apart by the Euclidean distance (due to the size of the document), chances are they may still be oriented closer together. The smaller the angle, higher the cosine similarity.
+## Planned AI/ML Roadmap
 
-## Sources of the datasets
-1. IMDB 5000 Movie Dataset  https://www.kaggle.com/carolzhangdc/imdb-5000-movie-dataset
-2. The Movies Dataset       https://www.kaggle.com/rounakbanik/the-movies-dataset   credits.csv, movies_metadata.csv
-3. List of movies in 2018   https://en.wikipedia.org/wiki/List_of_American_films_of_2018
-4. List of movies in 2019   https://en.wikipedia.org/wiki/List_of_American_films_of_2019
-5. List of movies in 2020   https://en.wikipedia.org/wiki/List_of_American_films_of_2020
+- MovieLens ingestion pipeline for ratings and movie metadata.
+- Collaborative filtering baseline.
+- Semantic content embeddings and FAISS retrieval.
+- Hybrid ranking that combines collaborative, content, popularity, and recency signals.
+- Evaluation with Precision@K, Recall@K, NDCG@K, and coverage.
+- Explanation layer: shared genres, cast/crew overlap, semantic similarity, and user-history signals.
 
-## Deployment on Heroku
-The deployment can be checked and verified at https://movie-recommendation-system21.herokuapp.com/
+## Architecture
+
+```text
+MovieLens / TMDb
+      |
+Feature Pipeline
+      |
+User Features + Item Features
+      |
+Candidate Generation
+  - Collaborative Filtering
+  - Content Similarity
+  - Embedding Retrieval
+      |
+Hybrid Ranking
+      |
+Explanation Layer
+      |
+FastAPI + UI
+```
+
+## Local Development
+
+Create a `.env` file or export the key in your shell. Use this exact key name locally and in Hugging Face Space secrets:
+
+```bash
+export TMDB_API_KEY="your_tmdb_api_key_here"
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Or with `uv`:
+
+```bash
+uv pip install -r requirements.txt
+```
+
+Run the app:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 7860 --reload
+```
+
+Then open `http://localhost:7860`.
+
+You can also use the project Makefile:
+
+```bash
+make dev
+make run
+```
+
+## Updating The Dataset
+
+The legacy catalog is kept as a fallback. To build a newer processed catalog from MovieLens:
+
+```bash
+python scripts/prepare_movielens.py --variant small
+```
+
+For the stronger offline dataset:
+
+```bash
+python scripts/prepare_movielens.py --variant 32m --min-ratings 20
+```
+
+The app automatically prefers `data/processed/movie_catalog.csv` when it exists. See [docs/DATASETS.md](docs/DATASETS.md) for details.
+
+To add newer TMDb coverage, use:
+
+```bash
+python scripts/build_tmdb_catalog.py --min-year 2019 --pages 50
+```
+
+Then merge the MovieLens and TMDb catalogs as described in [docs/DATASETS.md](docs/DATASETS.md).
+
+For broader 2018-2026 TMDb coverage:
+
+```bash
+make tmdb-broad-recent
+```
+
+This is intentionally separate from the default demo pipeline because it makes many more API requests and pulls in more low-signal titles.
+
+Build the first collaborative-filtering artifact:
+
+```bash
+python scripts/train_item_cf.py
+```
+
+When `data/processed/item_neighbors.csv` exists, the app automatically blends item-item collaborative recommendations into the API and UI results.
+The item-CF evaluator writes `data/processed/item_cf_eval.csv` with Recall@K, Precision@K, MRR@K, and coverage.
+The semantic index writes `data/processed/semantic_index.npz`, which is loaded at runtime without downloading a model.
+
+For the full repeatable workflow:
+
+```bash
+make pipeline-small
+```
+
+For a stronger Hugging Face demo with MovieLens ratings plus broad recent TMDb coverage:
+
+```bash
+make pipeline-demo
+```
+
+For the larger offline workflow:
+
+```bash
+make pipeline-32m
+```
+
+See [docs/AUTOMATION.md](docs/AUTOMATION.md) for the auto-update and Hugging Face hosting strategy.
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the five-phase modernization status.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the Hugging Face deployment checklist.
+
+Validate runtime artifacts:
+
+```bash
+make validate
+```
+
+## Hugging Face Spaces
+
+This project is designed for the free CPU Space tier:
+
+- Heavy model training should happen offline or in a controlled build step.
+- Runtime should use compact precomputed artifacts.
+- TMDb credentials should be stored as a Space secret named `TMDB_API_KEY`.
+- The app listens on port `7860`.
+- Run `make validate` before deployment.
+
+## API
+
+Health check:
+
+```text
+GET /api/health
+```
+
+Suggestions:
+
+```text
+GET /api/suggestions
+```
+
+Content recommendation baseline:
+
+```text
+GET /api/recommendations?title=avatar&limit=12
+```
+
+Catalog stats:
+
+```text
+GET /api/catalog
+```

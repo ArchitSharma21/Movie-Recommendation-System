@@ -8,6 +8,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rowdies:wght@300&display=swap" rel="stylesheet">
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -22,7 +23,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/css/autoComplete.min.css">
 
   <!-- External CSS -->
-  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "/static/style.css?v={{ asset_version }}">
 
   <script type="text/javascript">
     var films = {{suggestions|tojson}};
@@ -57,6 +58,20 @@
 
     <div class="form-group" style="text-align: center;">
       <button class="btn btn-primary btn-block movie-button" style="background-color: #e50914;text-align: center;border-color: #e50914;width:120px;" disabled="true" >Enter</button><br><br>
+    </div>
+    <div class="dataset-note">
+      <span class="dataset-note__label">Catalog</span>
+      {{ "{:,}".format(catalog_stats.movies) }} movies
+      {% if catalog_stats.min_year != "unknown" and catalog_stats.max_year != "unknown" %}
+        spanning {{ catalog_stats.min_year }}-{{ catalog_stats.max_year }}
+      {% endif %}
+      with MovieLens ratings plus broad TMDb recent coverage.
+      {% if catalog_stats.top_origins != "unknown" %}
+        Sampled origins: {{ catalog_stats.top_origins }}.
+      {% endif %}
+      {% if catalog_stats.top_languages != "unknown" %}
+        Languages: {{ catalog_stats.top_languages }}.
+      {% endif %}
     </div>
 	</div>
 
@@ -102,9 +117,9 @@
 	</div>
 	
 	<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/js/autoComplete.min.js"></script>
-  <script type="text/javascript" src="{{url_for('static', filename='autocomplete.js')}}"></script>
+  <script type="text/javascript" src="/static/autocomplete.js?v={{ asset_version }}"></script>
 
-  <script type="text/javascript" src="{{url_for('static', filename='recommend.js')}}"></script>
+  <script type="text/javascript" src="/static/recommend.js?v={{ asset_version }}"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
